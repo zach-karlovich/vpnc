@@ -54,8 +54,6 @@ Or use the compiled binary:
 ```bash
 IP Address: 203.0.113.1
 Location: 40.7128,-74.0060
-Organization: AS12345 Example ISP
-Hostname: example-host.com
 VPN Status: Active
 ```
 
