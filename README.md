@@ -1,41 +1,81 @@
-# IP Information Checker
-
-A simple Rust application that fetches and displays information about your IP address using the ipinfo.io API.
+# VPN Checker (vpnc)
+vpnc is a lightweight and simple Rust application that fetches information about your IP address using the ipinfo.io API and detects VPN activity. It is designed for privacy-conscious users who want quick insights into their current network status.
 
 ## Features
-* Retrieves current IP address
-* Shows geographical location
-* Placeholder for VPN detection (coming soon)
+Retrieves and displays:
+- Current IP address
+- Geographical location (latitude and longitude)
+- Organization and hostname details (if available)
+- Detects VPN usage through:
+  - Local network interface checks
+  - Simplified remote checks
+- Configurable via IPINFO_TOKEN for extended functionality.
 
-## Prerequisites
-------------
-* Rust (latest stable version)
-* Cargo package manager
-
-## Dependencies
-* reqwest: For making HTTP requests
-* serde: For JSON deserialization
-
-## Building
-To build the project, run:
+## Installation
+### Prerequisites
+- Rust: Ensure you have the latest stable version of Rust and Cargo installed. Install Rust
 ```bash
-cargo build
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+### Dependencies
+The following dependencies are used:
+
+- reqwest: For making HTTP requests.
+- serde: For JSON deserialization.
+
+Install them automatically during the build process.
+
+### Build
+To build the application: 
+```bash
+cargo build --release This will produce an optimized executable in the target/release directory.
+```
+### Usage
+#### Set Up API Token (Optional)
+If you have an API token from ipinfo.io, set it in your environment:
+```bash
+export IPINFO_TOKEN=<your_api_token>
 ```
 
-## Running
-To run the application:
+### Run the Application
+Execute the application using Cargo:
 ```bash
 cargo run
 ```
-## Example Output
+Or use the compiled binary:
+```bash
+./target/release/vpnc
+```
+
+### Example Output
 ```bash
 IP Address: 203.0.113.1
 Location: 40.7128,-74.0060
-VPN Service: Not checked
+Organization: AS12345 Example ISP
+Hostname: example-host.com
+VPN Status: Active
 ```
 
-## License
+### VPN Detection Logic
+#### Local Interface Check:
+Scans local network interfaces for keywords (tun, tap, wg, etc.) to detect active VPN tunnels.
+#### Remote Indicator Check:
+Uses basic heuristics for remote detection of VPNs when local methods fail.
+
+### License
 This project is open source and available under the MIT License.
 
-## Contributing
-Contributions are welcome! Please feel free to submit a Pull Request.
+### Contributing
+Contributions are welcome! If you have ideas, bug reports, or feature requests, feel free to open an issue or submit a pull request.
+
+### Development
+To contribute:
+```bash
+Fork the repository.
+Create a feature branch:
+git checkout -b feature/your-feature
+Test your changes thoroughly before opening a pull request.
+```
+
+### Feedback
+For questions or feedback, open an issue in the repository or contact the project maintainer.
