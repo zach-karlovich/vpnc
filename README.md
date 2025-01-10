@@ -13,7 +13,7 @@ Retrieves and displays:
 
 ## Installation
 ### Prerequisites
-- Rust: Ensure you have the latest stable version of Rust and Cargo installed. Install Rust
+Rust: Ensure you have the latest stable version of Rust and Cargo installed. Install Rust
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
@@ -28,8 +28,11 @@ Install them automatically during the build process.
 ### Build
 To build the application: 
 ```bash
-cargo build --release This will produce an optimized executable in the target/release directory.
+cargo build --release 
+
 ```
+This will produce an optimized executable in the target/release directory.
+
 ### Usage
 #### Set Up API Token (Optional)
 If you have an API token from ipinfo.io, set it in your environment:
@@ -59,6 +62,7 @@ VPN Status: Active
 ### VPN Detection Logic
 #### Local Interface Check:
 Scans local network interfaces for keywords (tun, tap, wg, etc.) to detect active VPN tunnels.
+
 #### Remote Indicator Check:
 Uses basic heuristics for remote detection of VPNs when local methods fail.
 
@@ -70,12 +74,12 @@ Contributions are welcome! If you have ideas, bug reports, or feature requests, 
 
 ### Development
 To contribute:
+1. Fork the repository.
+2. Create a feature branch:
 ```bash
-Fork the repository.
-Create a feature branch:
 git checkout -b feature/your-feature
-Test your changes thoroughly before opening a pull request.
 ```
+3. Test your changes thoroughly before opening a pull request.
 
 ### Feedback
 For questions or feedback, open an issue in the repository or contact the project maintainer.
