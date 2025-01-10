@@ -1,4 +1,5 @@
 mod status;
+use status::VpnStatus;
 
 // Main function
 fn main() {
@@ -6,9 +7,13 @@ fn main() {
         Ok(info) => {
             println!("IP Address: {}", info.ip);
             println!("Location: {}", info.loc);
-            // Add logic to check for VPN service here
-            // For now, let's print a placeholder
-            println!("VPN Service: Not checked");
+            
+            // Check VPN status
+            match info.detect_vpn() {
+                VpnStatus::Active => println!("VPN Status: ACTIVE"),
+                VpnStatus::Inactive => println!("VPN Status: INACTIVE"),
+                VpnStatus::Unknown => println!("VPN Status: UNKNOWN - Could not determine"),
+            }
         }
         Err(err) => {
             eprintln!("Error: {}", err);
