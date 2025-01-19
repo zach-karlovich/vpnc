@@ -66,18 +66,3 @@ Uses basic heuristics for remote detection of VPNs when local methods fail.
 
 ### License
 This project is open source and available under the MIT License.
-
-### Contributing
-Contributions are welcome! If you have ideas, bug reports, or feature requests, feel free to open an issue or submit a pull request.
-
-### Development
-To contribute:
-1. Fork the repository.
-2. Create a feature branch:
-```bash
-git checkout -b feature/your-feature
-```
-3. Test your changes thoroughly before opening a pull request.
-
-### Feedback
-For questions or feedback, open an issue in the repository or contact the project maintainer.
