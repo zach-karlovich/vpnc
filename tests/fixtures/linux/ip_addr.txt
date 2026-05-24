@@ -1,0 +1,2 @@
+1: lo    inet 127.0.0.1/8 scope host lo
+2: eth0    inet 10.0.0.5/24 brd 10.0.0.255 scope global dynamic eth0

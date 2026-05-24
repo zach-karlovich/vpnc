@@ -1,0 +1,6 @@
+DNS configuration
+
+resolver #1
+  nameserver[0] : 192.168.1.1
+  nameserver[1] : 1.1.1.1
+  nameserver[2] : fd7a:115c:a1e0::53
