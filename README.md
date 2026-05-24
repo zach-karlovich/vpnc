@@ -1,68 +1,81 @@
-# VPN Checker (vpnc)
-vpnc is a lightweight and simple Rust application that fetches information about your IP address using the ipinfo.io API and detects VPN activity. It is designed for privacy-conscious users who want quick insights into their current network status.
+# vpnc
+
+Privacy-focused, cross-platform network status checker. `vpnc` prints a compact report with date/time, OS, IP, DNS, and VPN detection status.
 
 ## Features
-Retrieves and displays:
-- Current IP address
-- Geographical location (latitude and longitude)
-- Organization and hostname details (if available)
-- Detects VPN usage through:
-  - Local network interface checks
-  - Simplified remote checks
-- Configurable via IPINFO_TOKEN for extended functionality.
+
+- Compact default output with only a few lines
+- Cross-platform support for macOS, Linux, and Windows
+- Local VPN detection using OS-native signals (interfaces, routes, VPN profiles)
+- Minimal public IP lookup via HTTPS (IP only, no enrichment)
+- Opt-in remote DNS leak check
+- Fully local mode with `--no-public-ip`
+
+## Privacy And Security
+
+- Default public IP lookup uses `https://api.ipify.org` and returns only the IP address.
+- Public IP lookup reveals your egress IP to the configured provider. Use `--no-public-ip` to disable all outbound requests.
+- DNS leak checking is disabled by default and only runs with `--dns-leak-check`.
+- Non-HTTPS public IP URLs are rejected unless `--allow-insecure-url` is explicitly set.
+- No ip geolocation, ASN, company, or hostname enrichment is performed.
 
 ## Installation
-### Prerequisites
-Rust: Ensure you have the latest stable version of Rust and Cargo installed. Install Rust
+
 ```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-```
-### Dependencies
-The following dependencies are used:
-
-- reqwest: For making HTTP requests.
-- serde: For JSON deserialization.
-
-Install them automatically during the build process.
-
-### Build
-To build the application: 
-```bash
-cargo build --release 
-
-```
-This will produce an optimized executable in the target/release directory.
-
-### Usage
-#### Set Up API Token (Optional)
-If you have an API token from ipinfo.io, set it in your environment:
-```bash
-export IPINFO_TOKEN=<your_api_token>
+cargo build --release
 ```
 
-### Run the Application
-Execute the application using Cargo:
+## Usage
+
 ```bash
 cargo run
 ```
-Or use the compiled binary:
-```bash
-./target/release/vpnc
+
+Compact output:
+
+```text
+Date/Time: 2026-05-24 10:01:00 -04:00
+OS: macOS 15.0
+IP: local 192.168.1.23, public 203.0.113.10
+DNS: 192.168.1.1, 1.1.1.1
+VPN Detected: Yes
 ```
 
-### Example Output
+### Flags
+
+- `--verbose` — show evidence and data sources
+- `--no-public-ip` — skip public IP lookup (fully local mode)
+- `--public-ip-url <url>` — configure the public IP endpoint
+- `--dns-leak-check` — run an opt-in remote DNS leak check
+- `--allow-insecure-url` — allow non-HTTPS public IP URLs
+- `--json` — print machine-readable JSON output
+
+Examples:
+
 ```bash
-IP Address: 203.0.113.1
-Location: 40.7128,-74.0060
-VPN Status: Active
+vpnc --no-public-ip
+vpnc --verbose
+vpnc --dns-leak-check
+vpnc --public-ip-url https://ifconfig.me/ip
+vpnc --json
 ```
 
-### VPN Detection Logic
-#### Local Interface Check:
-Scans local network interfaces for keywords (tun, tap, wg, etc.) to detect active VPN tunnels.
+## VPN Detection
 
-#### Remote Indicator Check:
-Uses basic heuristics for remote detection of VPNs when local methods fail.
+VPN detection uses weighted local signals:
 
-### License
-This project is open source and available under the MIT License.
+- Strong: connected VPN profile, default route via VPN interface, split-tunnel routes, active WireGuard tunnel
+- Weak: VPN-like interface active (requires additional route evidence)
+
+The legacy port-scan heuristic has been removed.
+
+## Limitations
+
+- Browser-only proxies may not be detected as VPN
+- Some split-tunnel VPNs may report `Unknown`
+- macOS `utun` interfaces can exist for non-VPN system services
+- DNS leak checks require external resolver behavior and are best-effort
+
+## License
+
+MIT License
