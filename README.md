@@ -1,6 +1,15 @@
 # vpnc
 
-Privacy-focused, cross-platform network status checker. `vpnc` prints a compact report with date/time, OS, IP, DNS, and VPN detection status.
+![CI](https://github.com/zach-karlovich/vpnc/actions/workflows/ci.yml/badge.svg)
+
+A small cross-platform CLI for a quick snapshot of date/time, OS, IPs, DNS, and whether a VPN tunnel looks active on your machine.
+
+## Disclaimer
+
+- **Best-effort only** — VPN detection uses local heuristics and may be wrong.
+- **Not a security product** — do not use for compliance, threat modeling, or as proof that you are "safe" or "leak-free."
+- **Default run uses the network** — public IP lookup contacts a third-party HTTPS endpoint unless you pass `--no-public-ip`.
+- **DNS leak check is optional** — only runs with `--dns-leak-check` and is not a full leak test.
 
 ## Features
 
@@ -11,7 +20,7 @@ Privacy-focused, cross-platform network status checker. `vpnc` prints a compact 
 - Opt-in remote DNS leak check
 - Fully local mode with `--no-public-ip`
 
-## Privacy And Security
+## Privacy Notes
 
 - Default public IP lookup uses `https://api.ipify.org` and returns only the IP address.
 - Public IP lookup reveals your egress IP to the configured provider. Use `--no-public-ip` to disable all outbound requests.
@@ -21,14 +30,25 @@ Privacy-focused, cross-platform network status checker. `vpnc` prints a compact 
 
 ## Installation
 
+Requires [Rust](https://rustup.rs/) and Cargo.
+
+```bash
+cargo install --path .
+```
+
+Ensure `~/.cargo/bin` is on your `PATH`, then run `vpnc`.
+
+To build without installing:
+
 ```bash
 cargo build --release
+./target/release/vpnc
 ```
 
 ## Usage
 
 ```bash
-cargo run
+vpnc
 ```
 
 Compact output:
@@ -67,8 +87,6 @@ VPN detection uses weighted local signals:
 - Strong: connected VPN profile, default route via VPN interface, split-tunnel routes, active WireGuard tunnel
 - Weak: VPN-like interface active (requires additional route evidence)
 
-The legacy port-scan heuristic has been removed.
-
 ## Limitations
 
 - Browser-only proxies may not be detected as VPN
@@ -76,6 +94,8 @@ The legacy port-scan heuristic has been removed.
 - macOS `utun` interfaces can exist for non-VPN system services
 - DNS leak checks require external resolver behavior and are best-effort
 
+See [SECURITY.md](SECURITY.md) for reporting security issues and out-of-scope items.
+
 ## License
 
-MIT License
+MIT License. The license file is in the repository.
