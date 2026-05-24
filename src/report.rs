@@ -2,7 +2,7 @@ use crate::cli::Cli;
 use crate::dns::{DnsInfo, run_dns_leak_check};
 use crate::net::public_ip;
 use crate::platform::{self, PlatformProbe};
-use crate::vpn::{VpnDetection, evaluate_vpn};
+use crate::vpn::{VpnDetection, VpnStatus, evaluate_vpn};
 use chrono::Local;
 use serde::Serialize;
 
@@ -77,63 +77,69 @@ impl StatusReport {
             return;
         }
 
-        println!("Date/Time: {}", self.datetime);
-        println!("OS: {}", self.os);
-        println!("IP: {}", self.format_ip_line());
-        println!("DNS: {}", self.format_dns_line());
-        println!("VPN Detected: {}", self.format_vpn_status());
+        print_field("Date/Time", &self.datetime);
+        print_field("OS", &self.os);
+        println!();
+        print_field("Local IP", &self.format_local_ip_line());
+        print_field("Public IP", &self.format_public_ip_line());
+        print_field("DNS", &self.format_dns_line());
+        print_field("VPN", self.format_vpn_status());
+        println!();
 
         if verbose {
             if let Some(source) = &self.public_ip_source {
-                println!("IP Source: public endpoint {source}");
+                print_field("IP source", source);
             } else if self.public_ip.is_none() && self.public_ip_error.is_none() {
-                println!("IP Source: local interfaces only");
+                print_field("IP source", "local interfaces only (public lookup skipped)");
             }
 
             if let Some(error) = &self.public_ip_error {
-                println!("IP Error: {error}");
+                print_field("IP error", error);
             }
 
-            println!("DNS Source: {}", self.dns.source);
+            print_field("DNS source", &self.dns.source);
 
             if !self.vpn.signals.is_empty() {
-                let reasons = self
-                    .vpn
-                    .signals
-                    .iter()
-                    .map(|signal| signal.description())
-                    .collect::<Vec<_>>()
-                    .join("; ");
-                println!("VPN Reasons: {reasons}");
+                print_field("VPN evidence", &self.format_vpn_evidence());
             }
 
             if !self.vpn.errors.is_empty() {
-                println!("VPN Errors: {}", self.vpn.errors.join("; "));
+                print_field("VPN errors", &self.vpn.errors.join("; "));
             }
 
             if let Some(leak) = &self.dns.leak_check {
-                println!("DNS Leak Check: resolver observed as {}", leak.observed);
-                println!("DNS Leak Source: {}", leak.source);
+                print_field("DNS leak check", &leak.observed);
+                print_field("DNS leak source", &leak.source);
             }
         } else if let Some(leak) = &self.dns.leak_check {
-            println!("DNS Leak Check: resolver observed as {}", leak.observed);
+            print_field("DNS leak check", &leak.observed);
         }
     }
 
-    fn format_ip_line(&self) -> String {
-        let local = if self.local_ips.is_empty() {
+    fn format_local_ip_line(&self) -> String {
+        if self.local_ips.is_empty() {
             "unavailable".to_string()
         } else {
             self.local_ips.join(", ")
-        };
-
-        match &self.public_ip {
-            Some(public) => format!("local {local}, public {public}"),
-            None if self.public_ip_error.is_some() => {
-                format!("local {local}, public unavailable")
-            }
-            None => format!("local {local}"),
         }
+    }
+
+    fn format_public_ip_line(&self) -> String {
+        match &self.public_ip {
+            Some(public) => public.clone(),
+            None if self.public_ip_error.is_some() => "unavailable".to_string(),
+            None if self.public_ip_source.is_none() => "skipped (--no-public-ip)".to_string(),
+            None => "unavailable".to_string(),
+        }
+    }
+
+    fn format_vpn_evidence(&self) -> String {
+        self.vpn
+            .signals
+            .iter()
+            .map(|signal| signal.description())
+            .collect::<Vec<_>>()
+            .join("; ")
     }
 
     fn format_dns_line(&self) -> String {
@@ -146,11 +152,23 @@ impl StatusReport {
 
     fn format_vpn_status(&self) -> &'static str {
         match self.vpn.status {
-            crate::vpn::VpnStatus::Detected => "Yes",
-            crate::vpn::VpnStatus::NotDetected => "No",
-            crate::vpn::VpnStatus::Unknown => "Unknown",
+            VpnStatus::Detected => "Detected",
+            VpnStatus::NotDetected => "Not detected",
+            VpnStatus::Unknown => "Unknown",
         }
     }
+
+    pub fn exit_code(&self) -> i32 {
+        match self.vpn.status {
+            VpnStatus::NotDetected => 0,
+            VpnStatus::Detected => 1,
+            VpnStatus::Unknown => 2,
+        }
+    }
+}
+
+fn print_field(label: &str, value: &str) {
+    println!("{label:<11} {value}");
 }
 
 #[cfg(test)]
@@ -181,11 +199,12 @@ mod tests {
     }
 
     #[test]
-    fn compact_output_has_five_core_lines() {
+    fn compact_output_fields_are_clear() {
         let report = sample_report();
-        assert_eq!(report.format_ip_line(), "local 192.168.1.23, public 203.0.113.10");
+        assert_eq!(report.format_local_ip_line(), "192.168.1.23");
+        assert_eq!(report.format_public_ip_line(), "203.0.113.10");
         assert_eq!(report.format_dns_line(), "192.168.1.1, 1.1.1.1");
-        assert_eq!(report.format_vpn_status(), "Yes");
+        assert_eq!(report.format_vpn_status(), "Detected");
     }
 
     #[test]
@@ -194,5 +213,24 @@ mod tests {
         let json = serde_json::to_string(&report).expect("json");
         assert!(json.contains("\"datetime\""));
         assert!(json.contains("\"vpn\""));
+    }
+
+    #[test]
+    fn exit_code_detected_is_one() {
+        assert_eq!(sample_report().exit_code(), 1);
+    }
+
+    #[test]
+    fn exit_code_not_detected_is_zero() {
+        let mut report = sample_report();
+        report.vpn.status = VpnStatus::NotDetected;
+        assert_eq!(report.exit_code(), 0);
+    }
+
+    #[test]
+    fn exit_code_unknown_is_two() {
+        let mut report = sample_report();
+        report.vpn.status = VpnStatus::Unknown;
+        assert_eq!(report.exit_code(), 2);
     }
 }

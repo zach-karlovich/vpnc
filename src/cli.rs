@@ -4,7 +4,17 @@ use std::time::Duration;
 pub const DEFAULT_TIMEOUT_SECS: u64 = 10;
 
 #[derive(Debug, Parser)]
-#[command(name = "vpnc", about = "Privacy-focused VPN and network status checker")]
+#[command(
+    name = "vpnc",
+    version,
+    about = "Quick network and VPN status snapshot for your machine",
+    long_about = "Print date/time, OS, IP, DNS, and whether a VPN tunnel looks active.\n\
+                  VPN detection is best-effort heuristics, not a security guarantee.",
+    after_help = "Exit codes:\n  \
+                  0  VPN not detected\n  \
+                  1  VPN detected\n  \
+                  2  Unknown (checks failed or inconclusive)"
+)]
 pub struct Cli {
     #[arg(long, short, help = "Show evidence and data sources")]
     pub verbose: bool,

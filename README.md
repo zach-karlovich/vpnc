@@ -54,15 +54,20 @@ vpnc
 Compact output:
 
 ```text
-Date/Time: 2026-05-24 10:01:00 -04:00
-OS: macOS 15.0
-IP: local 192.168.1.23, public 203.0.113.10
-DNS: 192.168.1.1, 1.1.1.1
-VPN Detected: Yes
+Date/Time:  2026-05-24 10:01:00 -04:00
+OS:         macOS 15.0
+
+Local IP:   192.168.1.23
+Public IP:  203.0.113.10
+DNS:        192.168.1.1, 1.1.1.1
+VPN:        Detected
+
 ```
 
 ### Flags
 
+- `-h`, `--help` — show usage and exit codes
+- `-V`, `--version` — show version
 - `--verbose` — show evidence and data sources
 - `--no-public-ip` — skip public IP lookup (fully local mode)
 - `--public-ip-url <url>` — configure the public IP endpoint
@@ -78,6 +83,20 @@ vpnc --verbose
 vpnc --dns-leak-check
 vpnc --public-ip-url https://ifconfig.me/ip
 vpnc --json
+```
+
+### Exit codes
+
+| Code | Meaning |
+|------|---------|
+| `0` | VPN not detected |
+| `1` | VPN detected |
+| `2` | Unknown (checks failed or inconclusive) |
+
+Example:
+
+```bash
+vpnc --no-public-ip || echo "VPN may be active or status unknown (exit $?)"
 ```
 
 ## VPN Detection
