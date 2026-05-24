@@ -1,24 +1,14 @@
-mod status;
-use status::VpnStatus;
+mod cli;
+mod dns;
+mod net;
+mod platform;
+mod report;
+mod vpn;
 
-// Main function
+use clap::Parser;
+
 fn main() {
-    println!("Checking VPN status...");
-    
-    match status::get_ip_info() {
-        Ok(info) => {
-            println!("IP Address: {}", info.ip);
-            println!("Location: {}", info.loc);
-            
-            println!("Performing VPN detection...");
-            match info.detect_vpn() {
-                VpnStatus::Active => println!("VPN Status: ACTIVE (Confirmed)"),
-                VpnStatus::Inactive => println!("VPN Status: INACTIVE (No VPN detected)"),
-                VpnStatus::Unknown => println!("VPN Status: UNKNOWN (Could not determine with confidence)"),
-            }
-        }
-        Err(err) => {
-            eprintln!("Error checking IP info: {}", err);
-        }
-    }
+    let cli = cli::Cli::parse();
+    let report = report::StatusReport::build(&cli);
+    report.print_compact(cli.verbose, cli.json);
 }
